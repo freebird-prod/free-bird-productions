@@ -1,5 +1,8 @@
 import { mockProjects, mockArticles, mockUsers } from "./mockData";
 
+const SUBSCRIBERS_KEY = "freebird_subscribers";
+const MESSAGES_KEY = "freebird_messages";
+
 interface PaginatedResult<T> {
     items: T[];
     total: number;
@@ -22,8 +25,93 @@ interface ArticleFilters {
     pageSize?: number;
 }
 
-// Simple in-memory storage for demo purposes
+// Initialize subscribers from localStorage
+const loadSubscribers = (): Map<string, { email: string; subscribedAt: string }> => {
+    if (typeof window === "undefined") return new Map();
+
+    const stored = localStorage.getItem(SUBSCRIBERS_KEY);
+    if (stored) {
+        try {
+            const data = JSON.parse(stored);
+            return new Map(Object.entries(data));
+        } catch {
+            return new Map();
+        }
+    }
+    return new Map();
+};
+
+// Initialize messages from localStorage
+const loadMessages = (): Map<string, any> => {
+    if (typeof window === "undefined") return new Map();
+
+    const stored = localStorage.getItem(MESSAGES_KEY);
+    if (stored) {
+        try {
+            const data = JSON.parse(stored);
+            return new Map(Object.entries(data));
+        } catch {
+            return new Map();
+        }
+    }
+    return new Map();
+};
+
+// Save subscribers to localStorage
+const saveSubscribers = (subscribers: Map<string, { email: string; subscribedAt: string }>) => {
+    if (typeof window !== "undefined") {
+        const data = Object.fromEntries(subscribers);
+        localStorage.setItem(SUBSCRIBERS_KEY, JSON.stringify(data));
+    }
+};
+
+// Save messages to localStorage
+const saveMessages = (messages: Map<string, any>) => {
+    if (typeof window !== "undefined") {
+        const data = Object.fromEntries(messages);
+        localStorage.setItem(MESSAGES_KEY, JSON.stringify(data));
+    }
+};
+
+// Simple in-memory storage with localStorage persistence
 export const storage = {
+    // Newsletter subscribers (with localStorage persistence)
+    subscribers: loadSubscribers(),
+    addSubscriber: (email: string) => {
+        if (!storage.subscribers.has(email)) {
+            storage.subscribers.set(email, {
+                email,
+                subscribedAt: new Date().toISOString(),
+            });
+            saveSubscribers(storage.subscribers);
+            return true;
+        }
+        return false;
+    },
+    subscribeToNewsletter: (data: { email: string }) => {
+        return storage.addSubscriber(data.email);
+    },
+    getSubscribers: () =>
+        Array.from(storage.subscribers.values()),
+
+    // Contact messages (with localStorage persistence)
+    messages: loadMessages(),
+    addMessage: (message: any) => {
+        const id = Date.now().toString();
+        storage.messages.set(id, {
+            ...message,
+            id,
+            timestamp: new Date().toISOString(),
+        });
+        saveMessages(storage.messages);
+        return id;
+    },
+    createContactMessage: (message: any) => {
+        return storage.addMessage(message);
+    },
+    getMessages: () =>
+        Array.from(storage.messages.values()),
+
     // Projects
     getAllProjects: () => mockProjects,
     getFeaturedProjects: () =>

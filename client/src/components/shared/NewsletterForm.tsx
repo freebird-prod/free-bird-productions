@@ -25,12 +25,20 @@ export function NewsletterForm({ variant = "default", className }: NewsletterFor
     try {
       // Simulate API delay
       await new Promise((resolve) => setTimeout(resolve, 800));
-      storage.subscribeToNewsletter({ email });
-      setIsSubscribed(true);
-      toast({
-        title: "Welcome aboard!",
-        description: "You've successfully subscribed to our newsletter.",
-      });
+      const added = storage.addSubscriber(email);
+      if (added) {
+        setIsSubscribed(true);
+        toast({
+          title: "Welcome aboard!",
+          description: "You've successfully subscribed to our newsletter.",
+        });
+      } else {
+        toast({
+          title: "Already subscribed",
+          description: "This email is already in our newsletter.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       toast({
         title: "Something went wrong",

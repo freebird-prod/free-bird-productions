@@ -45,12 +45,23 @@ export function Footer() {
 
     setIsSubmitting(true);
     try {
-      storage.subscribeToNewsletter({ email });
-      toast({
-        title: "Subscribed!",
-        description: "You've been added to our newsletter.",
-      });
-      setEmail("");
+      // Simulate API delay
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const added = storage.addSubscriber(email);
+      if (added) {
+        toast({
+          title: "Subscribed!",
+          description: "You've been added to our newsletter.",
+        });
+        setEmail("");
+      } else {
+        toast({
+          title: "Already subscribed",
+          description: "This email is already in our newsletter.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -77,7 +88,7 @@ export function Footer() {
             <p className="mt-4 text-muted-foreground max-w-sm">
               A creative studio dedicated to visual storytelling and sharing knowledge with aspiring creators worldwide.
             </p>
-            
+
             {/* Newsletter Form */}
             <form onSubmit={handleNewsletterSubmit} className="mt-6">
               <p className="text-sm font-medium mb-3">Subscribe to our newsletter</p>
@@ -90,8 +101,8 @@ export function Footer() {
                   className="flex-1"
                   data-testid="input-footer-newsletter"
                 />
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   size="icon"
                   disabled={isSubmitting}
                   data-testid="button-footer-subscribe"
@@ -109,7 +120,7 @@ export function Footer() {
               {footerLinks.explore.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href}>
-                    <span 
+                    <span
                       className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                       data-testid={`link-footer-${link.label.toLowerCase()}`}
                     >
